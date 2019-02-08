@@ -41,6 +41,11 @@
 |33| [What is the difference between pure and impure pipe?](#what-is-the-difference-between-pure-and-impure-pipe)|
 |34| [What is a bootstrapping module?](#what-is-a-bootstrapping-module)|
 |35| [What are observables?](#what-are-observables)|
+|36| [What is HttpClient and its benefits?](#what-is-httpclient-and-its-benefits)|
+|37| [Explain on how to use HttpClient with an example?](#explain-on-how-to-use-httpclient-with-an-example)|
+|38| [How can you read full response?](#how-can-you-read-full-response)|
+|39| [How do you perform Error handling?](#how-do-you-perform-error-handling)|
+|40| [What is RxJS?](#what-is-rxjs)|
 
 1. ### What is Angular Framework?
 
@@ -567,6 +572,95 @@
     ```
 35. ### What are observables?
     Observables are declarative which provide support for passing messages between publishers and subscribers in your application. They are mainly used for event handling, asynchronous programming, and handling multiple values. In this case, you define a function for publishing values, but it is not executed until a consumer subscribes to it. The subscribed consumer then receives notifications until the function completes, or until they unsubscribe.
+36. ### What is HttpClient and its benefits?
+    Most of the Front-end applications communicate with backend services over HTTP protocol using either XMLHttpRequest interface or the fetch() API. Angular provides a simplified client HTTP API known as **HttpClient** which is based on top of XMLHttpRequest interface. This client is avaialble from `@angular/common/http` package.
+    You can import in your root module as below,
+    ```javascript
+    import { HttpClientModule } from '@angular/common/http';
+    ```
+
+    The major advantages of HttpClient can be listed as below,
+    1. Contains testability features
+    2. Provides typed request and response objects
+    3. Intercept request and response
+    4. Supports Observalbe APIs
+    5. Supports streamlined error handling
+
+37. ### Explain on how to use HttpClient with an example?
+    Below are the steps need to be followed for the usage of HttpClient.
+    1. Import HttpClient into root module:
+    ```javascript
+    import { HttpClientModule } from '@angular/common/http';
+    @NgModule({
+      imports: [
+        BrowserModule,
+        // import HttpClientModule after BrowserModule.
+        HttpClientModule,
+      ],
+      ......
+      })
+     export class AppModule {}
+    ```
+    2. Inject the HttpClient into the application:
+    Let's create a userProfileService(userprofile.service.ts) as an example. It also defines get method of HttpClient
+    ```javascript
+    import { Injectable } from '@angular/core';
+    import { HttpClient } from '@angular/common/http';
+
+    const userProfileUrl: string = 'assets/data/profile.json';
+
+    @Injectable()
+    export class UserProfileService {
+      constructor(private http: HttpClient) { }
+    }
+
+    getUserProfile() {
+      return this.http.get(this.userProfileUrl);
+    }
+    ```
+    3. Create a component for subscribing service:
+    Let's create a component called UserProfileComponent(userprofile.component.ts) which inject UserProfileService and invokes the service method,
+    ```javascript
+    fetchUserProfile() {
+      this.userProfileService.getUserProfile()
+        .subscribe((data: User) => this.user = {
+            id: data['userId'],
+            name: data['firstName'],
+            city:  data['city']
+        });
+    }
+    ```
+    Since the above service method returns an Observable which needs to be subscribed in the component.
+38. ### How can you read full response?
+    The response body doesn't may not return full response data because sometimes servers also return special headers or status code which which are important for the application workflow. Inorder to get full response, you should use observe option from HttpClient,
+    ```javascript
+    getUserResponse(): Observable<HttpResponse<User>> {
+      return this.http.get<User>(
+        this.userUrl, { observe: 'response' });
+    }
+    ```
+    Now HttpClient.get() method returns an Observable of typed HttpResponse rather than just the JSON data.
+39. ### How do you perform Error handling?
+    If the request fails on the server or failed to reach the server due to network issues then HttpClient will return an error object instead of a successful reponse. In this case, you need to handle in the component by passing error object as a second callback to subscribe() method.
+    Let's see how it can be handled in the component with an example,
+    ```javascript
+    fetchUser() {
+      this.userService.getProfile()
+        .subscribe(
+          (data: User) => this.userProfile = { ...data }, // success path
+          error => this.error = error // error path
+        );
+    }
+    ```
+    It is always a good idea to give the user some meaningful feedback instead of displaying the raw error object returned from HttpClient.
+40. ### What is RxJS?
+    RxJS is a library for composing asynchronous and callback-based code in a functional, reactive style using Observables. Many APIs such as  HttpClient produce and consume RxJS Observables and also uses operators for processing observables.
+    For example, you can import observables and operators for using HttpClient as below,
+    ```javascript
+    import { Observable, throwError } from 'rxjs';
+    import { catchError, retry } from 'rxjs/operators';
+    ```
+
 
 
 
